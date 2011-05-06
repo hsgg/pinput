@@ -39,7 +39,7 @@ class GInput:
         for line in p.stdout:
             line = line.strip()
             (na, id, ms, ty) = regex.match(line).group(1,2,3,4)
-            l = gtk.Label(na + "    id=" + str(id) + "(" + ms + " " + ty + ")")
+            l = gtk.Label(na + "    id=" + id + " (" + ms + " " + ty + ")  ")
             b = gtk.Button(self.get_status(id))
             b.connect('clicked', self.toggle_device, id)
             h = gtk.HBox()
