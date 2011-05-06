@@ -7,6 +7,11 @@ from __future__ import print_function
 import gtk
 import re, subprocess
 
+debug = 1
+def dbg(args):
+    if debug == 1:
+        print(' '.join(args))
+
 class GInput:
     def __init__(self):
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
@@ -28,6 +33,7 @@ class GInput:
     def create_button_box(self):
         args = ["xinput",  "list",  "--short"]
         p = subprocess.Popen(args, shell=False, stdout=subprocess.PIPE)
+        dbg(args)
         regex = re.compile("^(.*)\s*id=([0-9]*).*\[(\w+) *(\w+) .*\].*$")
         self.vbox = gtk.VBox()
         for line in p.stdout:
@@ -46,11 +52,11 @@ class GInput:
     def get_status(self, id):
         args = ["xinput", "list-props", str(id)]
         p = subprocess.Popen(args, shell=False, stdout=subprocess.PIPE)
+        dbg(args)
         regex_state = re.compile("^\s*Device Enabled \(([0-9]*)\):\s*([0-9])$")
         line = p.stdout.next().strip()
         line = p.stdout.next().strip()
         (prop, enabled) = regex_state.match(line).group(1, 2)
-        print("status = " + str(enabled))
         if int(enabled) == 0:
             return "Disabled"
         else:
@@ -59,6 +65,7 @@ class GInput:
     def toggle_device(self, widget, id):
         args = ["xinput", "list-props", str(id)]
         p = subprocess.Popen(args, shell=False, stdout=subprocess.PIPE)
+        dbg(args)
         regex_state = re.compile("^\s*Device Enabled \(([0-9]*)\):\s*([0-9])$")
         line = p.stdout.next().strip()
         line = p.stdout.next().strip()
@@ -67,9 +74,9 @@ class GInput:
             enabled = 1
         else:
             enabled = 0
-        print(id + " => " + prop + ", chang to " + str(enabled))
         args = ["xinput", "set-int-prop", str(id), str(prop), "8", str(enabled)]
         p = subprocess.Popen(args, shell=False, stdout=subprocess.PIPE)
+        dbg(args)
         widget.set_label(self.get_status(id))
         widget.show()
 
