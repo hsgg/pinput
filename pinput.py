@@ -10,13 +10,10 @@ import re, subprocess
 class GInput:
     def __init__(self):
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
+        self.window.set_border_width(15)
         self.window.connect('delete_event', self.delete_event)
         self.window.connect('destroy', self.destroy)
-        self.button = gtk.Button('Hello')
-        self.window.add(self.button)
-        self.xi2_masters = []
-        self.button.connect('clicked', self.get_info, self.xi2_masters)
-        #self.button.connect_object("clicked", gtk.Widget.destroy, self.window)
+        self.create_button_box()
         self.window.show_all()
 
     def delete_event(self, widget, event, data=None):
@@ -28,19 +25,56 @@ class GInput:
     def main(self):
         gtk.main()
 
-    def get_info(self, widget, xi2_masters):
+    def create_button_box(self):
         args = ["xinput",  "list",  "--short"]
         p = subprocess.Popen(args, shell=False, stdout=subprocess.PIPE)
-        regex = re.compile("^.*id=([0-9]*).*\[(\w+) *(\w+) .*\].*$")
+        regex = re.compile("^(.*)\s*id=([0-9]*).*\[(\w+) *(\w+) .*\].*$")
+        self.vbox = gtk.VBox()
         for line in p.stdout:
-            (id, ms, ty) = regex.match(line).group(1,2,3)
-            print(id, ms, ty)
+            line = line.strip()
+            (na, id, ms, ty) = regex.match(line).group(1,2,3,4)
+            l = gtk.Label(na + "    id=" + str(id) + "(" + ms + " " + ty + ")")
+            b = gtk.Button(self.get_status(id))
+            b.connect('clicked', self.toggle_device, id)
+            h = gtk.HBox()
+            h.add(l)
+            h.add(b)
+            self.vbox.add(h)
+            #print(id, ms, ty)
+        self.window.add(self.vbox)
 
+    def get_status(self, id):
+        args = ["xinput", "list-props", str(id)]
+        p = subprocess.Popen(args, shell=False, stdout=subprocess.PIPE)
+        regex_state = re.compile("^\s*Device Enabled \(([0-9]*)\):\s*([0-9])$")
+        line = p.stdout.next().strip()
+        line = p.stdout.next().strip()
+        (prop, enabled) = regex_state.match(line).group(1, 2)
+        print("status = " + str(enabled))
+        if int(enabled) == 0:
+            return "Disabled"
+        else:
+            return "Enabled"
 
+    def toggle_device(self, widget, id):
+        args = ["xinput", "list-props", str(id)]
+        p = subprocess.Popen(args, shell=False, stdout=subprocess.PIPE)
+        regex_state = re.compile("^\s*Device Enabled \(([0-9]*)\):\s*([0-9])$")
+        line = p.stdout.next().strip()
+        line = p.stdout.next().strip()
+        (prop, enabled) = regex_state.match(line).group(1, 2)
+        if int(enabled) == 0:
+            enabled = 1
+        else:
+            enabled = 0
+        print(id + " => " + prop + ", chang to " + str(enabled))
+        args = ["xinput", "set-int-prop", str(id), str(prop), "8", str(enabled)]
+        p = subprocess.Popen(args, shell=False, stdout=subprocess.PIPE)
+        widget.set_label(self.get_status(id))
+        widget.show()
 
 
 if __name__ == "__main__":
-    #GInput().main()
-    GInput().get_info(None, None)
+    GInput().main()
 
 # vim: set sw=4 et sts=4 :
