@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# 2011 Henry Gebhardt <hsggebhardt@googlemail.com>
 
 from __future__ import print_function
 
@@ -12,7 +13,7 @@ def dbg(args):
     if debug == 1:
         print(' '.join(args))
 
-class GInput:
+class PInput:
     def __init__(self):
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
         self.window.set_border_width(15)
@@ -82,6 +83,6 @@ class GInput:
 
 
 if __name__ == "__main__":
-    GInput().main()
+    PInput().main()
 
 # vim: set sw=4 et sts=4 :
