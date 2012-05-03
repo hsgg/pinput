@@ -36,41 +36,45 @@ class PInput:
         p = subprocess.Popen(args, shell=False, stdout=subprocess.PIPE)
         dbg(args)
         regex = re.compile("^(.*)\s*id=([0-9]*).*\[(\w+) *(\w+) .*\].*$")
-        self.table = gtk.Table(columns=2)
+        self.table = gtk.Table()
         row = 0
         for line in p.stdout:
             line = line.strip()
             (na, id, ms, ty) = regex.match(line).group(1,2,3,4)
-            l = gtk.Label(na + "    id=" + id + " (" + ms + " " + ty + ")  ")
-            b = gtk.Button(self.get_status(id))
+            (name, prop, enabled) = self.get_props(id)
+            l1 = gtk.Label(na)
+            l2 = gtk.Label("id=" + id + " ")
+            l3 = gtk.Label("(" + ms + " " + ty + ")  ")
+            b = gtk.Button(self.stringify_enabled(enabled))
             b.connect('clicked', self.toggle_device, id)
             row += 1
-            self.table.attach(l, 1, 2, row, row + 1)
-            self.table.attach(b, 2, 3, row, row + 1)
-            #print(id, ms, ty)
+            self.table.attach(l1, 1, 2, row, row + 1)
+            self.table.attach(l2, 2, 3, row, row + 1)
+            self.table.attach(l3, 3, 4, row, row + 1)
+            self.table.attach(b, 4, 5, row, row + 1)
+            print(na, id, ms, ty)
         self.window.add(self.table)
 
-    def get_status(self, id):
+    def get_props(self, id):
         args = ["xinput", "list-props", str(id)]
         p = subprocess.Popen(args, shell=False, stdout=subprocess.PIPE)
         dbg(args)
+        regex_state = re.compile("^Device '(.*)':")
+        line = p.stdout.next().strip()
+        name = regex_state.match(line).group(1)
         regex_state = re.compile("^\s*Device Enabled \(([0-9]*)\):\s*([0-9])$")
         line = p.stdout.next().strip()
-        line = p.stdout.next().strip()
         (prop, enabled) = regex_state.match(line).group(1, 2)
+        return (name, prop, enabled)
+
+    def stringify_enabled(self, enabled):
         if int(enabled) == 0:
             return "Disabled"
         else:
             return "Enabled"
 
     def toggle_device(self, widget, id):
-        args = ["xinput", "list-props", str(id)]
-        p = subprocess.Popen(args, shell=False, stdout=subprocess.PIPE)
-        dbg(args)
-        regex_state = re.compile("^\s*Device Enabled \(([0-9]*)\):\s*([0-9])$")
-        line = p.stdout.next().strip()
-        line = p.stdout.next().strip()
-        (prop, enabled) = regex_state.match(line).group(1, 2)
+        (name, prop, enabled) = self.get_props(id)
         if int(enabled) == 0:
             enabled = 1
         else:
@@ -78,7 +82,7 @@ class PInput:
         args = ["xinput", "set-int-prop", str(id), str(prop), "8", str(enabled)]
         p = subprocess.Popen(args, shell=False, stdout=subprocess.PIPE)
         dbg(args)
-        widget.set_label(self.get_status(id))
+        widget.set_label(self.stringify_enabled(enabled))
         widget.show()
 
 
