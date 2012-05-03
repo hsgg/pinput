@@ -39,13 +39,12 @@ class PInput:
         self.table = gtk.Table()
         row = 0
         for line in p.stdout:
-            line = line.strip()
             (na, id, ms, ty) = regex.match(line).group(1,2,3,4)
-            (name, prop, enabled) = self.get_props(id)
             l1 = gtk.Label(na)
+            l1.set_alignment(0.0, 0.5)
             l2 = gtk.Label("id=" + id + " ")
             l3 = gtk.Label("(" + ms + " " + ty + ")  ")
-            b = gtk.Button(self.stringify_enabled(enabled))
+            b = gtk.Button(self.stringify_enabled(self.get_props(id)[2]))
             b.connect('clicked', self.toggle_device, id)
             row += 1
             self.table.attach(l1, 1, 2, row, row + 1)
