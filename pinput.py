@@ -36,19 +36,19 @@ class PInput:
         p = subprocess.Popen(args, shell=False, stdout=subprocess.PIPE)
         dbg(args)
         regex = re.compile("^(.*)\s*id=([0-9]*).*\[(\w+) *(\w+) .*\].*$")
-        self.vbox = gtk.VBox()
+        self.table = gtk.Table(columns=2)
+        row = 0
         for line in p.stdout:
             line = line.strip()
             (na, id, ms, ty) = regex.match(line).group(1,2,3,4)
             l = gtk.Label(na + "    id=" + id + " (" + ms + " " + ty + ")  ")
             b = gtk.Button(self.get_status(id))
             b.connect('clicked', self.toggle_device, id)
-            h = gtk.HBox()
-            h.add(l)
-            h.add(b)
-            self.vbox.add(h)
+            row += 1
+            self.table.attach(l, 1, 2, row, row + 1)
+            self.table.attach(b, 2, 3, row, row + 1)
             #print(id, ms, ty)
-        self.window.add(self.vbox)
+        self.window.add(self.table)
 
     def get_status(self, id):
         args = ["xinput", "list-props", str(id)]
