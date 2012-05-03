@@ -8,7 +8,7 @@ from __future__ import print_function
 import gtk
 import re, subprocess
 
-debug = 1
+debug = 0
 def dbg(args):
     if debug == 1:
         print(' '.join(args))
@@ -51,7 +51,7 @@ class PInput:
             self.table.attach(l2, 2, 3, row, row + 1)
             self.table.attach(l3, 3, 4, row, row + 1)
             self.table.attach(b, 4, 5, row, row + 1)
-            print(na, id, ms, ty)
+            dbg((na, id, ms, ty))
         self.window.add(self.table)
 
     def get_props(self, id):
